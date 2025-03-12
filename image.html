@@ -30,15 +30,114 @@
 
     <link rel="stylesheet" href="assets/fontawesome/css/all.min.css">
     <link rel="stylesheet" href="assets/bootstrap-icons/bootstrap-icons.css">
-    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/fonts/bootstrap-icons.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/webfonts/fa-solid-900.woff2"
+        as="font" type="font/woff2" crossorigin="anonymous">
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/fonts/bootstrap-icons.woff2"
+        as="font" type="font/woff2" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
-    
+
 
 
     <!-- Template Stylesheet -->
     <link href="css/style.css" rel="stylesheet">
+    <style>
+        /* General Styling */
+        body {
+            background-color: #121212;
+            font-family: 'Arial', sans-serif;
+            color: #fff;
+        }
+
+        /* Exercise Tip Box */
+        .tip-container {
+            font-size: 1rem;
+            font-weight: 600;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-left: 5px solid #ff4444;
+            padding: 10px;
+            transition: all 0.5s ease-in-out;
+            color: #fff;
+        }
+
+        #exercise-tip {
+            display: inline-block;
+        }
+
+        /* Next Tip Button */
+        #next-tip {
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        #next-tip:hover {
+            background-color: #cc0000;
+        }
+
+        /* Buttons */
+        .exercise-btn {
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .exercise-btn:hover {
+            background-color: #cc0000 !important;
+            color: #fff !important;
+            transform: scale(1.05);
+        }
+
+        /* Exercise Card */
+        .exercise-card {
+            max-width: 400px;
+            background-color: #1e1e1e;
+            color: #ffffff;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .exercise-card:hover {
+            transform: translateY(-5px);
+        }
+
+        /* Image Styling */
+        .exercise-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin-top: 10px;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .exercise-image:hover {
+            transform: scale(1.05);
+        }
+
+        /* Fade-In Animation */
+        .fade-in {
+            opacity: 0;
+            animation: fadeIn 1s forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -201,13 +300,27 @@
 
 
             <!-- Sales Chart Start -->
-            <div class="container-fluid vh-100 d-flex align-items-center justify-content-center">
+            <div class="container-fluid vh-100 d-flex flex-column align-items-center justify-content-center">
+                <h3 class="text-center mb-4">Select an Exercise</h3>
+
+                <!-- Exercise Tip Section -->
+                <div id="exercise-tip-container" class="tip-container mb-3 p-3 text-center w-75 rounded shadow-sm">
+                    <p id="exercise-tip" class="m-0"></p>
+                    <button id="next-tip" class="btn btn-sm btn-light mt-2">Next Tip</button>
+                </div>
+
+                <div id="exercise-buttons" class="button-container mb-4">
+                    <!-- Buttons will be generated dynamically -->
+                </div>
+
                 <div class="row w-100 h-100 d-flex align-items-center justify-content-center" id="dashboard">
                     <!-- Dynamic content will be inserted here -->
                 </div>
             </div>
-            
-            
+
+
+
+
 
 
             <!-- Footer Start -->
@@ -246,42 +359,92 @@
     <script src="js/main.js"></script>
     <script>
         let exerciseData = [];
-        let currentIndex = 0;
+        let exerciseTips = [
+            "💡Keep your core engaged throughout the workout!",
+            "🏋🏻‍♀️ Maintain a neutral spine to avoid injuries.",
+            "⚖️ Control your movements and avoid jerky motions.",
+            "🌬️ Focus on breathing properly during each rep.",
+            "🤸‍♂️ Warm-up before starting to reduce injury risks."
+        ];
 
+        let tipIndex = 0; // Track current tip index
+
+        // Function to Fetch Exercise Data
         async function fetchExerciseData() {
             try {
                 const response = await fetch('exercise_data.json'); // Assuming it's hosted
                 exerciseData = await response.json();
-                updateUI();
+                createExerciseButtons();
+                updateExerciseTip();
             } catch (error) {
                 console.error('Error fetching exercise data:', error);
             }
         }
 
-        function updateUI() {
+        // Function to Generate Exercise Buttons
+        function createExerciseButtons() {
+            const buttonContainer = document.getElementById("exercise-buttons");
+            buttonContainer.innerHTML = "";
+
+            exerciseData.forEach((exercise, index) => {
+                const button = document.createElement("button");
+                button.classList.add("exercise-btn", "btn", "btn-danger", "m-2");
+                button.textContent = exercise.exercise_name;
+                button.onclick = () => displayExercise(index);
+                buttonContainer.appendChild(button);
+            });
+        }
+
+        // Function to Display Selected Exercise Details
+        function displayExercise(index) {
             if (!exerciseData.length) return;
 
             const dashboard = document.getElementById("dashboard");
-            dashboard.innerHTML = "";
+            dashboard.innerHTML = ""; // Clear existing content
 
-            let exercise = exerciseData[currentIndex];
+            let exercise = exerciseData[index];
 
-            dashboard.innerHTML = `
-        <div class="col-sm-12 col-md-6 d-flex justify-content-center">
-            <div class="image-container">
-                <h4>${exercise.exercise_name}</h4>
-                <img src="${exercise.posture_picture}" alt="${exercise.exercise_name}" class="fixed-size-image">
-                <span class="info-text"> <b> Angles(Degrees): </b> ${exercise.angles_degrees}° (${exercise.body_part})</span>
-            </div>
-        </div>
+            let exerciseCard = document.createElement("div");
+            exerciseCard.classList.add("exercise-card", "fade-in", "p-3");
+
+            exerciseCard.innerHTML = `
+        <h4>${exercise.exercise_name}</h4>
+        <img src="${exercise.posture_picture}" alt="${exercise.exercise_name}" class="exercise-image">
+        <p class="info-text"><b>Angles (Degrees):</b> ${exercise.angles_degrees}° (${exercise.body_part})</p>
     `;
 
-            currentIndex = (currentIndex + 1) % exerciseData.length;
+            dashboard.appendChild(exerciseCard);
         }
 
-        // Fetch and update every 2 seconds
+        // Function to Rotate Exercise Tips Every 5 Seconds
+        function updateExerciseTip() {
+            const tipBox = document.getElementById("exercise-tip");
+            tipBox.textContent = exerciseTips[tipIndex];
+
+            // Apply animation
+            tipBox.classList.add("fade-in");
+
+            setTimeout(() => {
+                tipBox.classList.remove("fade-in");
+            }, 2000);
+
+            // Move to the next tip
+            tipIndex = (tipIndex + 1) % exerciseTips.length;
+        }
+
+        // Auto-rotate tips every 5 seconds
+        setInterval(updateExerciseTip, 5000);
+
+        // Manual tip change on button click
+        document.getElementById("next-tip").addEventListener("click", () => {
+            updateExerciseTip();
+        });
+
+        // Fetch Data when Page Loads
         fetchExerciseData();
-        setInterval(updateUI, 2000);
+
+
+
 
 
     </script>
