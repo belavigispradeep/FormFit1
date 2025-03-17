@@ -163,7 +163,7 @@
                                 class="far fa-file-alt me-2"></i>LogIn</a>
                         <div class="dropdown-menu bg-transparent border-0">
                             <a href="signin.html" class="dropdown-item">Sign In</a>
-                            <a href="signup.html" class="dropdown-item">Sign Up</a>
+                            <button onclick="logout()" class="btn btn-danger">Logout</button>
                         </div>
                     </div>
                 </div>
@@ -258,8 +258,7 @@
                         </a>
                         <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
                             <a href="#" class="dropdown-item">My Profile</a>
-                            <a href="#" class="dropdown-item">Settings</a>
-                            <a href="#" class="dropdown-item">Log Out</a>
+                            <button onclick="logout()" class="btn btn-danger">Logout</button>
                         </div>
                     </div>
                 </div>
@@ -495,7 +494,13 @@
 
     <!-- Template Javascript -->
     <script src="js/main.js"></script>
+    <script src="auth.js"></script>
     <script>
+        // Prevent unauthorized access to index.html
+        if (localStorage.getItem("isLoggedIn") !== "true") {
+            window.location.href = "pages/login.html"; // Redirect to login page
+        }
+
         function addTask() {
             var taskInput = document.getElementById("taskInput");
             var taskText = taskInput.value.trim();
