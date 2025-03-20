@@ -182,9 +182,68 @@
                 <a href="#" class="sidebar-toggler flex-shrink-0">
                     <i class="fa fa-bars"></i>
                 </a>
-                <form class="d-none d-md-flex ms-4">
-                    <input class="form-control bg-dark border-0" type="search" placeholder="Search">
+                <!-- Search Form -->
+                <form class="d-none d-md-flex ms-4" onsubmit="performSearch(event)">
+                    <input id="navbarSearchInput" class="form-control bg-dark border-0 text-white" type="search"
+                        placeholder="Search anything..." onkeyup="debounceSearch()">
                 </form>
+
+                <!-- JavaScript -->
+                <script>
+                    let debounceTimer;
+
+                    function debounceSearch() {
+                        clearTimeout(debounceTimer);
+                        debounceTimer = setTimeout(() => {
+                            performSearch();
+                        }, 300); // Delays search by 300ms
+                    }
+
+                    function performSearch() {
+                        const query = document.getElementById("navbarSearchInput").value.trim().toLowerCase();
+                        let resultsFound = false;
+
+                        // Select all searchable elements
+                        const feedbackItems = document.querySelectorAll("#feedbackContainer .feedback-item");
+                        const tasks = document.querySelectorAll("#taskList li");
+
+                        function resetHighlights() {
+                            [...feedbackItems, ...tasks].forEach(item => {
+                                item.style.backgroundColor = "transparent";
+                                item.style.transition = "background-color 0.5s ease";
+                            });
+                        }
+
+                        // If the search box is empty, remove highlights
+                        if (!query) {
+                            resetHighlights();
+                            return;
+                        }
+
+                        resetHighlights(); // Reset before searching
+
+                        feedbackItems.forEach(item => {
+                            if (item.textContent.toLowerCase().includes(query)) {
+                                item.style.backgroundColor = "#ffd700"; // Gold highlight
+                                resultsFound = true;
+                            }
+                        });
+
+                        tasks.forEach(task => {
+                            if (task.textContent.toLowerCase().includes(query)) {
+                                task.style.backgroundColor = "#ffd700"; // Gold highlight
+                                resultsFound = true;
+                            }
+                        });
+
+                        if (!resultsFound) {
+                            alert("No results found.");
+                        }
+                    }
+                </script>
+
+
+
                 <div class="navbar-nav align-items-center ms-auto">
                     <div class="nav-item dropdown">
                         <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">

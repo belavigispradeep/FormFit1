@@ -207,9 +207,74 @@
                 <a href="#" class="sidebar-toggler flex-shrink-0">
                     <i class="fa fa-bars"></i>
                 </a>
+                <!-- Search Bar -->
                 <form class="d-none d-md-flex ms-4">
-                    <input class="form-control bg-dark border-0" type="search" placeholder="Search">
+                    <input id="navbarSearchInput" class="form-control bg-dark border-0 text-white" type="search"
+                        placeholder="Search anything..." onkeyup="debounceSearch()">
                 </form>
+
+                <!-- JavaScript -->
+                <script>
+                    let debounceTimer;
+
+                    function debounceSearch() {
+                        clearTimeout(debounceTimer);
+                        debounceTimer = setTimeout(() => {
+                            performSearch();
+                        }, 300); // Delays search by 300ms
+                    }
+
+                    function performSearch() {
+                        const query = document.getElementById("navbarSearchInput").value.trim().toLowerCase();
+                        let resultsFound = false;
+
+                        // Select all searchable elements
+                        const exercises = document.querySelectorAll("#exercise-buttons button");
+                        const notifications = document.querySelectorAll(".dropdown-menu .dropdown-item");
+                        const messages = document.querySelectorAll(".dropdown-menu .d-flex.align-items-center");
+
+                        function resetHighlights() {
+                            [...exercises, ...notifications, ...messages].forEach(item => {
+                                item.style.backgroundColor = "transparent";
+                                item.style.transition = "background-color 0.5s ease";
+                            });
+                        }
+
+                        // If the search box is empty, remove highlights
+                        if (!query) {
+                            resetHighlights();
+                            return;
+                        }
+
+                        resetHighlights(); // Reset before searching
+
+                        exercises.forEach(item => {
+                            if (item.textContent.toLowerCase().includes(query)) {
+                                item.style.backgroundColor = "#ffd700"; // Gold highlight
+                                resultsFound = true;
+                            }
+                        });
+
+                        notifications.forEach(item => {
+                            if (item.textContent.toLowerCase().includes(query)) {
+                                item.style.backgroundColor = "#ffd700"; // Gold highlight
+                                resultsFound = true;
+                            }
+                        });
+
+                        messages.forEach(item => {
+                            if (item.textContent.toLowerCase().includes(query)) {
+                                item.style.backgroundColor = "#ffd700"; // Gold highlight
+                                resultsFound = true;
+                            }
+                        });
+
+                        if (!resultsFound) {
+                            alert("No results found.");
+                        }
+                    }
+                </script>
+
                 <div class="navbar-nav align-items-center ms-auto">
                     <div class="nav-item dropdown">
                         <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
@@ -358,94 +423,113 @@
     <script src="js/main.js"></script>
     <script src="auth.js"></script>
     <script>
-        let exerciseData = [];
-        let exerciseTips = [
-            "💡Keep your core engaged throughout the workout!",
-            "🏋🏻‍♀️ Maintain a neutral spine to avoid injuries.",
-            "⚖️ Control your movements and avoid jerky motions.",
-            "🌬️ Focus on breathing properly during each rep.",
-            "🤸‍♂️ Warm-up before starting to reduce injury risks."
-        ];
+        document.addEventListener("DOMContentLoaded", () => {
+            let exerciseData = [];
+            let exerciseTips = [
+                "💡 Keep your core engaged throughout the workout!",
+                "🏋🏻‍♀️ Maintain a neutral spine to avoid injuries.",
+                "⚖️ Control your movements and avoid jerky motions.",
+                "🌬️ Focus on breathing properly during each rep.",
+                "🤸‍♂️ Warm-up before starting to reduce injury risks."
+            ];
 
-        let tipIndex = 0; // Track current tip index
+            let tipIndex = 0; // Track current tip index
 
-        // Function to Fetch Exercise Data
-        async function fetchExerciseData() {
-            try {
-                const response = await fetch('exercise_data.json'); // Assuming it's hosted
-                exerciseData = await response.json();
-                createExerciseButtons();
-                updateExerciseTip();
-            } catch (error) {
-                console.error('Error fetching exercise data:', error);
+            // Function to Fetch Exercise Data
+            async function fetchExerciseData() {
+                try {
+                    const response = await fetch('exercise_data.json'); // Assuming it's hosted
+                    exerciseData = await response.json();
+                    createExerciseButtons();
+                    updateExerciseTip();
+                } catch (error) {
+                    console.error('Error fetching exercise data:', error);
+                }
             }
-        }
 
-        // Function to Generate Exercise Buttons
-        function createExerciseButtons() {
-            const buttonContainer = document.getElementById("exercise-buttons");
-            buttonContainer.innerHTML = "";
+            // Function to Generate Exercise Buttons
+            function createExerciseButtons() {
+                const buttonContainer = document.getElementById("exercise-buttons");
+                buttonContainer.innerHTML = "";
 
-            exerciseData.forEach((exercise, index) => {
-                const button = document.createElement("button");
-                button.classList.add("exercise-btn", "btn", "btn-danger", "m-2");
-                button.textContent = exercise.exercise_name;
-                button.onclick = () => displayExercise(index);
-                buttonContainer.appendChild(button);
+                exerciseData.forEach((exercise, index) => {
+                    const button = document.createElement("button");
+                    button.classList.add("exercise-btn", "btn", "btn-danger", "m-2");
+                    button.textContent = exercise.exercise_name;
+                    button.onclick = () => displayExercise(index);
+                    buttonContainer.appendChild(button);
+                });
+            }
+
+            // Function to Display Selected Exercise Details with Loading Animation
+            function displayExercise(index) {
+                if (!exerciseData.length) return;
+
+                const dashboard = document.getElementById("dashboard");
+                dashboard.innerHTML = ""; // Clear existing content
+
+                // Create a loading spinner
+                let loadingContainer = document.createElement("div");
+                loadingContainer.classList.add("d-flex", "justify-content-center", "align-items-center", "w-100", "h-100");
+
+                let loadingSpinner = document.createElement("div");
+                loadingSpinner.classList.add("spinner-border", "text-primary");
+                loadingSpinner.style.width = "4rem";
+                loadingSpinner.style.height = "4rem";
+
+                loadingContainer.appendChild(loadingSpinner);
+                dashboard.appendChild(loadingContainer); // Show the spinner
+
+                // Set a timeout between 0.5s to 1s before showing content
+                let delay = Math.random() * (1000 - 500) + 500;
+
+                setTimeout(() => {
+                    dashboard.innerHTML = ""; // Clear the spinner
+
+                    let exercise = exerciseData[index];
+
+                    let exerciseCard = document.createElement("div");
+                    exerciseCard.classList.add("exercise-card", "fade-in", "p-3", "text-center");
+
+                    exerciseCard.innerHTML = `
+                <h4 class="mb-3">${exercise.exercise_name}</h4>
+                <div class="d-flex justify-content-center">
+                    <img src="${exercise.posture_picture}" alt="${exercise.exercise_name}" class="exercise-image img-fluid rounded shadow">
+                </div>
+                <p class="info-text mt-3"><b>Angles (Degrees):</b> ${exercise.angles_degrees}° (${exercise.body_part})</p>
+            `;
+
+                    dashboard.appendChild(exerciseCard);
+                }, delay);
+            }
+
+            // Function to Rotate Exercise Tips Every 5 Seconds
+            function updateExerciseTip() {
+                const tipBox = document.getElementById("exercise-tip");
+                tipBox.textContent = exerciseTips[tipIndex];
+
+                // Apply animation
+                tipBox.classList.add("fade-in");
+
+                setTimeout(() => {
+                    tipBox.classList.remove("fade-in");
+                }, 2000);
+
+                // Move to the next tip
+                tipIndex = (tipIndex + 1) % exerciseTips.length;
+            }
+
+            // Auto-rotate tips every 5 seconds
+            setInterval(updateExerciseTip, 5000);
+
+            // Manual tip change on button click
+            document.getElementById("next-tip").addEventListener("click", () => {
+                updateExerciseTip();
             });
-        }
 
-        // Function to Display Selected Exercise Details
-        function displayExercise(index) {
-            if (!exerciseData.length) return;
-
-            const dashboard = document.getElementById("dashboard");
-            dashboard.innerHTML = ""; // Clear existing content
-
-            let exercise = exerciseData[index];
-
-            let exerciseCard = document.createElement("div");
-            exerciseCard.classList.add("exercise-card", "fade-in", "p-3");
-
-            exerciseCard.innerHTML = `
-        <h4>${exercise.exercise_name}</h4>
-        <img src="${exercise.posture_picture}" alt="${exercise.exercise_name}" class="exercise-image">
-        <p class="info-text"><b>Angles (Degrees):</b> ${exercise.angles_degrees}° (${exercise.body_part})</p>
-    `;
-
-            dashboard.appendChild(exerciseCard);
-        }
-
-        // Function to Rotate Exercise Tips Every 5 Seconds
-        function updateExerciseTip() {
-            const tipBox = document.getElementById("exercise-tip");
-            tipBox.textContent = exerciseTips[tipIndex];
-
-            // Apply animation
-            tipBox.classList.add("fade-in");
-
-            setTimeout(() => {
-                tipBox.classList.remove("fade-in");
-            }, 2000);
-
-            // Move to the next tip
-            tipIndex = (tipIndex + 1) % exerciseTips.length;
-        }
-
-        // Auto-rotate tips every 5 seconds
-        setInterval(updateExerciseTip, 5000);
-
-        // Manual tip change on button click
-        document.getElementById("next-tip").addEventListener("click", () => {
-            updateExerciseTip();
+            // Fetch Data when Page Loads
+            fetchExerciseData();
         });
-
-        // Fetch Data when Page Loads
-        fetchExerciseData();
-
-
-
-
 
     </script>
 </body>
